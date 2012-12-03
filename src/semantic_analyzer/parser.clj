@@ -2,7 +2,7 @@
   (:use [clojure.java.io])
   (import [java.io FileNotFoundException]))
 
-(def NO_FILE_MESSAGE "No such file exists")
+(def NO_FILE_MESSAGE "\nNo such file exists")
 
 (defn- processLine [line]
   "Processes one line"
@@ -16,4 +16,3 @@
 	(processLine line)))
     (catch FileNotFoundException e
       (println NO_FILE_MESSAGE))))
-
