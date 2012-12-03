@@ -2,14 +2,15 @@
   (:use [clojure.java.io]))
 
 ;;; This file implements Porter stemming algorithm
-;;; for Russian language
+;;; for Russian language taken from here:
+;;; http://snowball.tartarus.org/algorithms/russian/stemmer.html
 
 ;; Endings
 ; i-suffixes
 
 (def PERFECTIVE_GERUND_ENDINGS
      ["в" "вши" "вшись"])
-(def ADJECTIVE_ENDINGS
+(def ADJECTIVAL_ENDINGS
      ["ее"  "ие"  "ые"  "ое"  "ими" "ыми"
       "ей"  "ий"  "ый"  "ой"  "ем"  "им"
       "ым"  "ом"  "его" "ого" "ему" "ому"
@@ -46,4 +47,72 @@
 (def DERIVATIONAL_ENDINGS
      ["ост" "ость"])
 
-;; logic goes here
+; vowels
+(def VOWELS
+     ["а" "е" "ё" "и" "о" "у" "э" "ю" "я"])
+
+(def ENDINGS_MAP
+     {:perf_gerund PERFECTIVE_GERUND_ENDINGS
+      :adj ADJECTIVAL_ENDINGS
+      :part1 PARTICIPLE_ENDINGS1
+      :part2 PARTICIPLE_ENDINGS2
+      :verb1 VERB_ENDINGS1
+      :verb2 VERB_ENDINGS2
+      :noun NOUN_ENDINGS
+      :super SUPERLATIVE_ENDINGS
+      :deriv DERIVATIONAL_ENDINGS
+      :reflex REFLEXIVE_ENDINGS})
+
+
+; helper functions
+(defn hasAnyEndings? [word endings]
+  (some #(.endsWith word %) endings))
+
+(defn hasWordAnyEndings? [word]
+  #(hasAnyEnding? word (% ENDINGS_MAP)))
+
+(defn hasPerfectiveGerundEnding? [word]
+  ((hasWordAnyEndings? :perf_gerund) word))
+
+(defn hasReflexiveEnding? [word]
+  ((hasWordAnyEndings? :reflex) word))
+
+(defn hasAdjectivalEnding? [word]
+  ((hasWordAnyEndings? :adj) word))
+
+(defn hasVerb1Ending? [word]
+  ((hasWordAnyEndings? :verb1) word))
+
+(defn hasVerb2Ending? [word]
+    ((hasWordAnyEndings? :verb2) word))
+
+(defn hasNounEnding? [word]
+    ((hasWordAnyEndings? :noun) word))
+
+(defn hasDerivationalEnding? [word]
+  ((hasWordAnyEndings? :deriv) word))
+
+(defn hasSuperlativeEnding? [word]
+  ((hasWordAnyEndings? :super) word))
+
+(defn hasParticularEnding? [word particularEnding]
+  (hasAnyEnding? word [particularEnding]))
+
+(defn hasIEnding? [word]
+  (hasParticularEnding? word "и"))
+
+(defn hasDoubleNEnding? [word]
+  (hasParticularEnding? word "нн"))
+
+(defn hasSoftSignEnding? [word]
+  (hasParticularEnding? word "ь"))
+
+; remove functions
+(comment defn removeEnding [word endings]
+  )
+
+;; stemming algorithm
+(defn step1 [word]
+  (if (hasPerfectiveGerundEnding? word)
+    (removePerfectiveGerundEnding word)
+    (else-clause)))
