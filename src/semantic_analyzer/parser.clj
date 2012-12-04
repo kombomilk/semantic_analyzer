@@ -4,9 +4,21 @@
 
 (def NO_FILE_MESSAGE "\nNo such file exists")
 
+;; parsing a line
+(defn removePunctuation [line]
+  (filter
+   #(not (empty? %))
+   (clojure.string/split line
+			 #"[^а-яА-Яa-zA-Z0-9]")))
+
+(defn normalize [line]
+  (let [vec (removePunctuation line)]
+    (map #(clojure.string/lower-case %)
+	 vec)))
+
 (defn- processLine [line]
   "Processes one line"
-  (println line))
+  (println (normalize line)))
 
 (defn parseFile [filename]
   "Parses the file line by line"
