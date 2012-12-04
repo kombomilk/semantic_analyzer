@@ -68,8 +68,8 @@
 (defn hasAnyEndings? [word endings]
   (some #(.endsWith word %) endings))
 
-(defn hasWordAnyEndings? [word]
-  #(hasAnyEnding? word (% ENDINGS_MAP)))
+(defn hasWordAnyEndings? [endingCode]
+  #(hasAnyEndings? % (endingCode ENDINGS_MAP)))
 
 (defn hasPerfectiveGerundEnding? [word]
   ((hasWordAnyEndings? :perf_gerund) word))
@@ -96,7 +96,7 @@
   ((hasWordAnyEndings? :super) word))
 
 (defn hasParticularEnding? [word particularEnding]
-  (hasAnyEnding? word [particularEnding]))
+  (hasAnyEndings? word [particularEnding]))
 
 (defn hasIEnding? [word]
   (hasParticularEnding? word "и"))
@@ -107,12 +107,16 @@
 (defn hasSoftSignEnding? [word]
   (hasParticularEnding? word "ь"))
 
+(defn findEnding [word endings]
+  (first (filter #(= % word)
+		 (endings ENDINGS_MAP))))
+
 ; remove functions
 (comment defn removeEnding [word endings]
   )
 
 ;; stemming algorithm
-(defn step1 [word]
+(comment defn step1 [word]
   (if (hasPerfectiveGerundEnding? word)
     (removePerfectiveGerundEnding word)
     (else-clause)))
