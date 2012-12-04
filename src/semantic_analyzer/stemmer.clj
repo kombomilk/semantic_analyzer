@@ -1,13 +1,11 @@
 (ns semantic-analyzer.core
   (:use [clojure.java.io]))
 
-;;; This file implements Porter stemming algorithm
-;;; for Russian language taken from here:
-;;; http://snowball.tartarus.org/algorithms/russian/stemmer.html
+;;;; This file implements Porter stemming algorithm
+;;;; for Russian language taken from here:
+;;;; http://snowball.tartarus.org/algorithms/russian/stemmer.html
 
 ;; Endings
-; i-suffixes
-
 (def PERFECTIVE_GERUND_ENDINGS
      ["в" "вши" "вшись"])
 (def ADJECTIVAL_ENDINGS
@@ -43,11 +41,9 @@
 (def SUPERLATIVE_ENDINGS
      ["ейш" "ейше"])
 
-; d-suffixes
 (def DERIVATIONAL_ENDINGS
      ["ост" "ость"])
 
-; vowels
 (def VOWELS
      ["а" "е" "ё" "и" "о" "у" "э" "ю" "я"])
 
@@ -61,15 +57,17 @@
       :noun NOUN_ENDINGS
       :super SUPERLATIVE_ENDINGS
       :deriv DERIVATIONAL_ENDINGS
-      :reflex REFLEXIVE_ENDINGS})
+      :reflex REFLEXIVE_ENDINGS
+      :i ["и"]
+      :nn ["нн"]
+      :soft ["ь"]})
 
-
-; helper functions
+;; helper functions
 (defn hasAnyEndings? [word endings]
   (some #(.endsWith word %) endings))
 
-(defn hasWordAnyEndings? [endingCode]
-  #(hasAnyEndings? % (endingCode ENDINGS_MAP)))
+(defn hasWordAnyEndings? [endingsCode]
+  #(hasAnyEndings? % (endingsCode ENDINGS_MAP)))
 
 (defn hasPerfectiveGerundEnding? [word]
   ((hasWordAnyEndings? :perf_gerund) word))
@@ -95,28 +93,72 @@
 (defn hasSuperlativeEnding? [word]
   ((hasWordAnyEndings? :super) word))
 
-(defn hasParticularEnding? [word particularEnding]
+(comment defn hasParticularEnding? [word particularEnding]
   (hasAnyEndings? word [particularEnding]))
 
-(defn hasIEnding? [word]
+(comment defn hasIEnding? [word]
+  "Becase unnecessary"
   (hasParticularEnding? word "и"))
 
-(defn hasDoubleNEnding? [word]
+(comment defn hasDoubleNEnding? [word]
   (hasParticularEnding? word "нн"))
 
-(defn hasSoftSignEnding? [word]
+(comment defn hasSoftSignEnding? [word]
   (hasParticularEnding? word "ь"))
 
-(defn findEnding [word endings]
-  (first (filter #(= % word)
-		 (endings ENDINGS_MAP))))
 
-; remove functions
-(comment defn removeEnding [word endings]
-  )
+;; word regions
+(def VOWELS_STRING (clojure.string/join "" VOWELS))
+(def rPattern (str "[" VOWELS_STRING "]"
+		   "[^" VOWELS_STRING "](.*)"))
+
+(defn r1 [word]
+  (or (last (re-find (re-pattern rPattern) word))
+      ""))
+
+(defn r2 [word] (r1 (r1 word)))
+
+
+;; functions for removal
+(defn findEnding [word endingsCode]
+  (first (filter #(.endsWith word %)
+		 (endingsCode ENDINGS_MAP))))
+
+(defn removeEnding [word endingsCode]
+  (let [ending (findEnding word endingsCode)]
+    (if (and (not (nil? ending))
+	     (.endsWith word ending))
+      (.substring word 0 (- (count word)
+			    (count ending)))
+      word)))
+
 
 ;; stemming algorithm
-(comment defn step1 [word]
+(defn step1 [word]
   (if (hasPerfectiveGerundEnding? word)
-    (removePerfectiveGerundEnding word)
-    (else-clause)))
+    (removeEnding word :perf_gerund)
+    (do 
+      (removeEnding word :reflexive)
+      (cond
+	    (hasAdjectivalEnding? word) (removeEnding word :adj)
+	    (hasVerb1Ending? word) (removeEnding word :verb1)
+	    (hasVerb2Ending? word) (removeEnding word :verb2)
+	    (hasNounEnding? word) (removeEnding word :noun)
+	    :else word))))
+
+(defn step2 [word]
+  (removeEnding word :i))
+
+(defn step3 [word]
+  (if (hasDerivationalEnding? (r2 word))
+    (removeEnding)
+    word))
+
+(defn step4 [word]
+  (let [woutSuperlative (removeEnding word :super)
+	woutSoft (removeEnding woutSuperlative :soft)]
+    (removeEnding woutSoft :nn)))
+
+;; main function which cuts the word
+(defn run [word]
+  (step4 (step3 (step2 (step1 word)))))
