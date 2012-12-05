@@ -3,7 +3,8 @@
   (:require [semantic-analyzer.stemmer :as stemmer]
 	    [semantic-analyzer.field :as field]
 	    [semantic-analyzer.style :as style]
-	    [semantic-analyzer.gender :as gender])
+	    [semantic-analyzer.gender :as gender]
+	    [semantic-analyzer.statistics :as stat])
   (import [java.io FileNotFoundException]))
 
 (def NO_FILE_MESSAGE "\nТакого файла не существует")
@@ -29,11 +30,15 @@
   (if-not (.startsWith line EXTRA_MARK)
     (let [words (normalize line)]
       (field/updateScore words)
-      (style/updateScore words))))
+      (style/updateScore words)
+      (gender/updateScore words)
+      (stat/updateScore words))))
 
 (defn resetStatistics []
   (field/resetStatistics)
-  (style/resetStatistics))
+  (style/resetStatistics)
+  (gender/resetStatistics)
+  (stat/resetStatistics))
 
 (defn parseFile [filename]
   "Parses the file line by line"
@@ -45,9 +50,12 @@
       (println "Тема:" (field/getField))
       (println "Автор:" (gender/getGender))
       (println "Жанр:" (style/getStyle))
-      (println "----")
+      (stat/printStatistics)
+      (println)
       (field/printStatistics)
-      (println "----")
-      (style/printStatistics))
+      (println)
+      (style/printStatistics)
+      (println)
+      (gender/printStatistics))
     (catch FileNotFoundException e
       (println NO_FILE_MESSAGE))))

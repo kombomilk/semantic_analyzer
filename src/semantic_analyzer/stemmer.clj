@@ -126,7 +126,8 @@
 (defn removeEnding [word endingsCode]
   (let [ending (findEnding word endingsCode)]
     (if (and (not (nil? ending))
-	     (.endsWith word ending))
+	     (.endsWith word ending)
+	     (> (count word) 3))
       (.substring word 0 (- (count word)
 			    (count ending)))
       word)))
