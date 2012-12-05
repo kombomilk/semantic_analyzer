@@ -2,6 +2,7 @@
   (:use [clojure.java.io])
   (:require [semantic-analyzer.stemmer :as stemmer]
 	    [semantic-analyzer.field :as field]
+	    [semantic-analyzer.style :as style]
 	    [semantic-analyzer.gender :as gender])
   (import [java.io FileNotFoundException]))
 
@@ -27,10 +28,12 @@
   "Processes one line"
   (if-not (.startsWith line EXTRA_MARK)
     (let [words (normalize line)]
-      (field/updateScore words))))
+      (field/updateScore words)
+      (style/updateScore words))))
 
 (defn resetStatistics []
-  (field/resetStatistics))
+  (field/resetStatistics)
+  (style/resetStatistics))
 
 (defn parseFile [filename]
   "Parses the file line by line"
@@ -41,6 +44,10 @@
 	(processLine line))
       (println "Тема:" (field/getField))
       (println "Автор:" (gender/getGender))
-      (comment field/printStatistics))
+      (println "Жанр:" (style/getStyle))
+      (println "----")
+      (field/printStatistics)
+      (println "----")
+      (style/printStatistics))
     (catch FileNotFoundException e
       (println NO_FILE_MESSAGE))))

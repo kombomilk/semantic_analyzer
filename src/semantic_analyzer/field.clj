@@ -34,6 +34,12 @@
 	     :education 0
 	     :unknown 0.5}))
 
+
+(defn updateField [code number]
+  (dosync
+   (ref-set score
+	    (assoc @score code number))))
+
 (defn resetStatistics []
   (doseq [code (keys STEMS)]
     (updateField code 0)))
@@ -41,11 +47,6 @@
 (defn printStatistics []
   (doseq [code (keys STEMS)]
     (println (code FIELDS) ":" (code @score))))
-
-(defn updateField [code number]
-  (dosync
-   (ref-set score
-	    (assoc @score code number))))
 
 (defn updateScore [words]
   (doseq [code (keys STEMS)]
