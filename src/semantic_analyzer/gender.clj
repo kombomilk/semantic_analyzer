@@ -11,6 +11,8 @@
       "мной" "тобой" "ею" "нами" "вами" "ими"
       "нем" "ней"])
 
+(def pronounsCount (ref 0))
+
 (defn printStatistics []
   (println "Местоимений :"
 	   @pronounsCount
@@ -18,8 +20,6 @@
 	   (stat/getWordsCount)
 	   " = "
 	   (/ @pronounsCount (stat/getWordsCount) 0.01) "%"))
-
-(def pronounsCount (ref 0))
 
 (defn updateValue [number]
   (dosync (ref-set pronounsCount number)))
