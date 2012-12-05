@@ -14,6 +14,7 @@
 (def pronounsCount (ref 0))
 
 (defn printStatistics []
+  "Выводит на консоль статистику по местоимениям"
   (println "Местоимений :"
 	   @pronounsCount
 	   "/"
@@ -22,23 +23,28 @@
 	   (/ @pronounsCount (stat/getWordsCount) 0.01) "%"))
 
 (defn updateValue [number]
+  "Обновляет количество местоимений"
   (dosync (ref-set pronounsCount number)))
 
 (defn addPronouns [number]
+  "Увеличивает количество местоимений на заданное число"
   (updateValue (+ number @pronounsCount)))
 
 (defn updateScore [words]
+  "Обновляет количесво местоимений по данному вектору слов"
   (let [toAdd (count
 	       (clojure.set/intersection (set words)
 					 (set PRONOUNS)))]
     (addPronouns toAdd)))
 
 (defn resetStatistics []
+  "Обновляет статистику"
   (updateValue 0))
 
 (def FEMALE_PRONOUN_CONSTANT 5.5)
 
 (defn getGender []
+  "Возвращает предполагаемый пол автора"
   (if (> (/ @pronounsCount (stat/getWordsCount) 0.01)
 	 FEMALE_PRONOUN_CONSTANT)
     (:f GENDERS)

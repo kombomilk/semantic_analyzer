@@ -57,22 +57,29 @@
 	     :science 0
 	     :official 0}))
 
+;; используется для решения, является ли текст
+;; художественным или нет, так как специальная художественная
+;; лексика практически не существует
 (def FICTION_CONSTANT 0.05)
 
 (defn updateField [code number]
+  "Обновляет значение мапа"
   (dosync
    (ref-set score
 	    (assoc @score code number))))
 
 (defn resetStatistics []
+  "Сбрасывает статистику по стилям текста"
   (doseq [code (keys STEMS)]
     (updateField code 0)))
 
 (defn printStatistics []
+  "Выводит на консоль статистику"
   (doseq [code (keys STEMS)]
     (println (code STYLES) ":" (code @score))))
 
 (defn updateScore [words]
+  "Обновляет данные по стилям согласно вектору слов"
   (updateField :fiction (+
 			 (:fiction @score)
 			 (* FICTION_CONSTANT (count words))))
@@ -84,5 +91,6 @@
 					       (set (code STEMS))))))))
 
 (defn getStyle []
+  "Возвращает предполагаемый стиль текста"
   ((first (apply max-key second @score))
    STYLES))

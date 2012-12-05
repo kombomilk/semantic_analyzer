@@ -1,10 +1,10 @@
 (ns semantic-analyzer.stemmer)
 
-;;;; This file implements Porter stemming algorithm
-;;;; for Russian language taken from here:
+;;;; Здесь реализован алгоритм стеммера Портера для 
+;;;; русского языка, взятый отсюда:
 ;;;; http://snowball.tartarus.org/algorithms/russian/stemmer.html
 
-;; Endings
+;; Окончания
 (def PERFECTIVE_GERUND_ENDINGS
      ["в" "вши" "вшись"])
 (def ADJECTIVAL_ENDINGS
@@ -61,7 +61,7 @@
       :nn ["нн"]
       :soft ["ь"]})
 
-;; helper functions
+;; вспомонательные функци
 (defn hasAnyEndings? [word endings]
   (some #(.endsWith word %) endings))
 
@@ -105,8 +105,8 @@
 (comment defn hasSoftSignEnding? [word]
   (hasParticularEnding? word "ь"))
 
-
-;; word regions
+;; поиск регионов слов (r1, r2), подробнее здесь:
+;; http://snowball.tartarus.org/texts/r1r2.html
 (def VOWELS_STRING (clojure.string/join "" VOWELS))
 (def rPattern (str "[" VOWELS_STRING "]"
 		   "[^" VOWELS_STRING "](.*)"))
@@ -115,15 +115,18 @@
   (or (last (re-find (re-pattern rPattern) word))
       ""))
 
-(defn r2 [word] (r1 (r1 word)))
+(defn r2 [word]
+  (r1 (r1 word)))
 
 
-;; functions for removal
+;; функции для удаления окончаний
 (defn findEnding [word endingsCode]
+  "Находит подходящее окончание слова в указанном векторе"
   (first (filter #(.endsWith word %)
 		 (endingsCode ENDINGS_MAP))))
 
 (defn removeEnding [word endingsCode]
+  "Удаляет указанное окончание слова"
   (let [ending (findEnding word endingsCode)]
     (if (and (not (nil? ending))
 	     (.endsWith word ending)
@@ -133,7 +136,9 @@
       word)))
 
 
-;; stemming algorithm
+;; алгоритм стемминга
+;; все четыре шага подробно описаны по ссылке,
+;; приведенной в начале файла
 (defn step1 [word]
   (if (hasPerfectiveGerundEnding? word)
     (removeEnding word :perf_gerund)
@@ -159,7 +164,7 @@
 	woutSoft (removeEnding woutSuperlative :soft)]
     (removeEnding woutSoft :nn)))
 
-;; main function which cuts the word
+;; основная функция
 (defn run [word]
   (-> word
       step1

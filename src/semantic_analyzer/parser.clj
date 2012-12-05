@@ -11,12 +11,14 @@
 
 ;; parsing a line
 (defn removePunctuation [line]
+  "Делит строку на слова и удаляет знаки препинания"
   (filter
    #(not (empty? %))
    (clojure.string/split line
 			 #"[^а-яА-Яa-zA-Z0-9]")))
 
 (defn normalize [line]
+  "Возвращает нормализованный вектор стемов"
   (let [v (removePunctuation line)]
     (map #(-> %
 	      clojure.string/lower-case
@@ -26,7 +28,7 @@
 (def EXTRA_MARK "%%%")
 
 (defn- processLine [line]
-  "Processes one line"
+  "Обрабатывает строку текста"
   (if-not (.startsWith line EXTRA_MARK)
     (let [words (normalize line)]
       (field/updateScore words)
@@ -35,13 +37,14 @@
       (stat/updateScore words))))
 
 (defn resetStatistics []
+  "Обновляет статистику перед обработкой нового файла"
   (field/resetStatistics)
   (style/resetStatistics)
   (gender/resetStatistics)
   (stat/resetStatistics))
 
 (defn parseFile [filename]
-  "Parses the file line by line"
+  "Парсит файл строку за строкой"
   (resetStatistics)
   (try 
     (with-open [rdr (reader filename)]
