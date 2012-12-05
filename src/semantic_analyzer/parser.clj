@@ -1,8 +1,11 @@
-(ns semantic-analyzer.core
+(ns semantic-analyzer.parser
   (:use [clojure.java.io])
+  (:require [semantic-analyzer.stemmer :as stemmer]
+	    [semantic-analyzer.field :as field]
+	    [semantic-analyzer.gender :as gender])
   (import [java.io FileNotFoundException]))
 
-(def NO_FILE_MESSAGE "\nNo such file exists")
+(def NO_FILE_MESSAGE "\nТакого файла не существует")
 
 ;; parsing a line
 (defn removePunctuation [line]
@@ -12,19 +15,32 @@
 			 #"[^а-яА-Яa-zA-Z0-9]")))
 
 (defn normalize [line]
-  (let [vec (removePunctuation line)]
-    (map #(clojure.string/lower-case %)
-	 vec)))
+  (let [v (removePunctuation line)]
+    (map #(-> %
+	      clojure.string/lower-case
+	      stemmer/run)
+	 v)))
+
+(def EXTRA_MARK "%%%")
 
 (defn- processLine [line]
   "Processes one line"
-  (println (normalize line)))
+  (if-not (.startsWith line EXTRA_MARK)
+    (let [words (normalize line)]
+      (field/updateScore words))))
+
+(defn resetStatistics []
+  (field/resetStatistics))
 
 (defn parseFile [filename]
   "Parses the file line by line"
+  (resetStatistics)
   (try 
     (with-open [rdr (reader filename)]
       (doseq [line (line-seq rdr)]
-	(processLine line)))
+	(processLine line))
+      (println "Тема:" (field/getField))
+      (println "Автор:" (gender/getGender))
+      (comment field/printStatistics))
     (catch FileNotFoundException e
       (println NO_FILE_MESSAGE))))

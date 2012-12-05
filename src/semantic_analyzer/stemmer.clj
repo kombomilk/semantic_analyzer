@@ -1,5 +1,4 @@
-(ns semantic-analyzer.core
-  (:use [clojure.java.io]))
+(ns semantic-analyzer.stemmer)
 
 ;;;; This file implements Porter stemming algorithm
 ;;;; for Russian language taken from here:
@@ -151,7 +150,7 @@
 
 (defn step3 [word]
   (if (hasDerivationalEnding? (r2 word))
-    (removeEnding)
+    (removeEnding word :deriv)
     word))
 
 (defn step4 [word]
@@ -161,4 +160,8 @@
 
 ;; main function which cuts the word
 (defn run [word]
-  (step4 (step3 (step2 (step1 word)))))
+  (-> word
+      step1
+      step2
+      step3
+      step4))
