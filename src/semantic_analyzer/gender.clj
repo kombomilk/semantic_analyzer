@@ -1,4 +1,5 @@
 (ns semantic-analyzer.gender
+  (:gen-class)
   (:require [semantic-analyzer.statistics :as stat]))
 
 (def GENDERS {:m "Мужчина"
@@ -14,7 +15,7 @@
 (def pronounsCount (ref 0))
 
 (defn printStatistics []
-  "Выводит на консоль статистику по местоимениям"
+  "Prints statistics about pronouns"
   (println "Местоимений :"
 	   @pronounsCount
 	   "/"
@@ -23,28 +24,30 @@
 	   (/ @pronounsCount (stat/getWordsCount) 0.01) "%"))
 
 (defn updateValue [number]
-  "Обновляет количество местоимений"
+  "Updates number of pronouns"
   (dosync (ref-set pronounsCount number)))
 
 (defn addPronouns [number]
-  "Увеличивает количество местоимений на заданное число"
+  "Increases number of pronouns with a given number"
   (updateValue (+ number @pronounsCount)))
 
 (defn updateScore [words]
-  "Обновляет количесво местоимений по данному вектору слов"
+  "Updates data according to the given words input vector"
   (let [toAdd (count
 	       (clojure.set/intersection (set words)
 					 (set PRONOUNS)))]
     (addPronouns toAdd)))
 
-(defn resetStatistics []
-  "Обновляет статистику"
+(defn resetStatistics
+  "Resets statistics"
+  []
   (updateValue 0))
 
 (def FEMALE_PRONOUN_CONSTANT 5.5)
 
-(defn getGender []
-  "Возвращает предполагаемый пол автора"
+(defn getGender
+  "Returns suggested text author's gender"
+  []
   (if (> (/ @pronounsCount (stat/getWordsCount) 0.01)
 	 FEMALE_PRONOUN_CONSTANT)
     (:f GENDERS)

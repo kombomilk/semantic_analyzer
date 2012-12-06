@@ -7,7 +7,7 @@
 	  "Возможно, заданы неверные параметры."))
 
 (defn -main
-  "I don't do a whole lot."
+  "Main function which parses a file and prints data about it"
   [& args]
   (try 
     (parser/parseFile (first args))

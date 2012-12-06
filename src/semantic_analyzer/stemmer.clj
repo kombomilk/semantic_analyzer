@@ -1,4 +1,5 @@
-(ns semantic-analyzer.stemmer)
+(ns semantic-analyzer.stemmer
+  (:gen-class))
 
 ;;;; Здесь реализован алгоритм стеммера Портера для 
 ;;;; русского языка, взятый отсюда:
@@ -62,41 +63,61 @@
       :soft ["ь"]})
 
 ;; вспомонательные функци
-(defn hasAnyEndings? [word endings]
+(defn hasAnyEndings?
+  "Checks if the word has any ending from the given endings vector"
+  [word endings]
   (some #(.endsWith word %) endings))
 
-(defn hasWordAnyEndings? [endingsCode]
+(defn hasWordAnyEndings?
+  "Returns function which checks existence of corresponding endings
+in the endings vector"
+  [endingsCode]
   #(hasAnyEndings? % (endingsCode ENDINGS_MAP)))
 
-(defn hasPerfectiveGerundEnding? [word]
+(defn hasPerfectiveGerundEnding?
+  "Checks whether a word has a perfective gerund ending"
+  [word]
   ((hasWordAnyEndings? :perf_gerund) word))
 
-(defn hasReflexiveEnding? [word]
+(defn hasReflexiveEnding?
+  "Checks whether a word has a reflexive ending"
+  [word]
   ((hasWordAnyEndings? :reflex) word))
 
-(defn hasAdjectivalEnding? [word]
+(defn hasAdjectivalEnding?
+  "Checks whether a word has an adjectival ending"
+  [word]
   ((hasWordAnyEndings? :adj) word))
 
-(defn hasVerb1Ending? [word]
+(defn hasVerb1Ending?
+  "Checks whether a word has a verb ending of the first type"
+  [word]
   ((hasWordAnyEndings? :verb1) word))
 
-(defn hasVerb2Ending? [word]
-    ((hasWordAnyEndings? :verb2) word))
+(defn hasVerb2Ending?
+  "Checks whether a word has a verb ending of the second type"
+  [word]
+  ((hasWordAnyEndings? :verb2) word))
 
-(defn hasNounEnding? [word]
-    ((hasWordAnyEndings? :noun) word))
+(defn hasNounEnding?
+  "Checks whether a word has a noun ending"
+  [word]
+  ((hasWordAnyEndings? :noun) word))
 
-(defn hasDerivationalEnding? [word]
+(defn hasDerivationalEnding?
+  "Checks whether a word has a derivational ending"
+  [word]
   ((hasWordAnyEndings? :deriv) word))
 
-(defn hasSuperlativeEnding? [word]
+(defn hasSuperlativeEnding?
+  "Checks whether a word has a superlative ending"
+  [word]
   ((hasWordAnyEndings? :super) word))
 
 (comment defn hasParticularEnding? [word particularEnding]
   (hasAnyEndings? word [particularEnding]))
 
 (comment defn hasIEnding? [word]
-  "Becase unnecessary"
   (hasParticularEnding? word "и"))
 
 (comment defn hasDoubleNEnding? [word]
@@ -111,22 +132,28 @@
 (def rPattern (str "[" VOWELS_STRING "]"
 		   "[^" VOWELS_STRING "](.*)"))
 
-(defn r1 [word]
+(defn r1
+  "Returns r1 region of the word"
+  [word]
   (or (last (re-find (re-pattern rPattern) word))
       ""))
 
-(defn r2 [word]
+(defn r2
+  "Returns r2 region of the word"
+  [word]
   (r1 (r1 word)))
 
 
 ;; функции для удаления окончаний
-(defn findEnding [word endingsCode]
-  "Находит подходящее окончание слова в указанном векторе"
+(defn findEnding
+  "Finds a corresponding word ending in the given vector"
+  [word endingsCode]
   (first (filter #(.endsWith word %)
 		 (endingsCode ENDINGS_MAP))))
 
-(defn removeEnding [word endingsCode]
-  "Удаляет указанное окончание слова"
+(defn removeEnding
+  "Remove given ending in the wodr"
+  [word endingsCode]
   (let [ending (findEnding word endingsCode)]
     (if (and (not (nil? ending))
 	     (.endsWith word ending)
@@ -139,7 +166,9 @@
 ;; алгоритм стемминга
 ;; все четыре шага подробно описаны по ссылке,
 ;; приведенной в начале файла
-(defn step1 [word]
+(defn step1
+  "The first step of the stemming algorithm"
+  [word]
   (if (hasPerfectiveGerundEnding? word)
     (removeEnding word :perf_gerund)
     (do 
@@ -151,21 +180,29 @@
 	    (hasNounEnding? word) (removeEnding word :noun)
 	    :else word))))
 
-(defn step2 [word]
+(defn step2
+  "The second step of the stemming algorithm"
+  [word]
   (removeEnding word :i))
 
-(defn step3 [word]
+(defn step3
+  "The third step of the stemming algorithm"
+  [word]
   (if (hasDerivationalEnding? (r2 word))
     (removeEnding word :deriv)
     word))
 
-(defn step4 [word]
+(defn step4
+  "The fourth step of the stemming algorithm"
+  [word]
   (let [woutSuperlative (removeEnding word :super)
 	woutSoft (removeEnding woutSuperlative :soft)]
     (removeEnding woutSoft :nn)))
 
 ;; основная функция
-(defn run [word]
+(defn run
+  "Main function which returns stem generated from word"
+  [word]
   (-> word
       step1
       step2

@@ -4,6 +4,6 @@ This is an attempt to create a text semantic analyzer.
 
 ## License
 
-Copyright © 2012 FIXME
+Copyright © 2012 Almaty, Kazakhstan
 
-Distributed under the Eclipse Public License, the same as Clojure.
+Distributed under the GNU Public License, the same as Clojure.

@@ -35,24 +35,28 @@
 	     :unknown 0.5}))
 
 
-(defn updateField [code number]
-  "Обновляет значение мапа"
+(defn updateField
+  "Update hashmap element's value"
+  [code number]
   (dosync
    (ref-set score
 	    (assoc @score code number))))
 
-(defn resetStatistics []
-  "Сбрасывает статистику по предполагаемым областям текста"
+(defn resetStatistics 
+  "Resets statistics about text field"
+  []
   (doseq [code (keys STEMS)]
     (updateField code 0)))
 
-(defn printStatistics []
-  "Выводит на консоль статистику по областям"
+(defn printStatistics 
+  "Prints statistics about text field"
+  []
   (doseq [code (keys STEMS)]
     (println (code FIELDS) ":" (code @score))))
 
-(defn updateScore [words]
-  "Обновляет данные согласно вектору слов очередной строки"
+(defn updateScore 
+  "Updates data according to the words input vector"
+  [words]
   (doseq [code (keys STEMS)]
     (updateField code
 		 (+ (code @score)
@@ -60,7 +64,8 @@
 		     (clojure.set/intersection (set words)
 					       (set (code STEMS))))))))
 
-(defn getField []
-  "Возвращает предполагаемую область текста по собранным данным"
+(defn getField 
+  "Returns suggested text field"
+  []
   ((first (apply max-key second @score))
    FIELDS))
