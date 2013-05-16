@@ -7,7 +7,7 @@
 	    [semantic-analyzer.statistics :as stat])
   (import [java.io FileNotFoundException]))
 
-(def NO_FILE_MESSAGE "\nТакого файла не существует")
+(def NO_FILE_MESSAGE "\nThere is no such file")
 
 ;; parsing a line
 (defn removePunctuation
@@ -55,9 +55,9 @@
     (with-open [rdr (reader filename)]
       (doseq [line (line-seq rdr)]
 	(processLine line))
-      (println "Тема:" (field/getField))
-      (println "Автор:" (gender/getGender))
-      (println "Жанр:" (style/getStyle))
+      (println "Field:" (field/getField))
+      (println "Author:" (gender/getGender))
+      (println "Genre:" (style/getStyle))
       (stat/printStatistics)
       (println)
       (field/printStatistics)

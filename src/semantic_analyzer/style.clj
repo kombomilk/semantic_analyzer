@@ -2,11 +2,11 @@
   (:require [clojure.set]))
 
 (def STYLES
-     {:public "Публицистический"
-      :fiction "Художественный"
-      :science "Научный"
-      :official "Официально-деловой"
-      :unknown "Неизвестно"})
+     {:public "Publicistic"
+      :fiction "Fiction"
+      :science "Scientific"
+      :official "Official"
+      :unknown "Unknown"})
 
 (def STEMS
      {:public

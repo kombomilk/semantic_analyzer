@@ -3,8 +3,8 @@
   (:require [semantic-analyzer.parser :as parser]))
 
 (def ERROR
-     (str "Ошибка при чтении файла.\n"
-	  "Возможно, заданы неверные параметры."))
+     (str "Error when reading file.\n"
+	  "Perhaps, there are wrong arguments for this command."))
 
 (defn -main
   "Main function which parses a file and prints data about it"
