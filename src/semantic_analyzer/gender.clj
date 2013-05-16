@@ -2,43 +2,55 @@
   (:gen-class)
   (:require [semantic-analyzer.statistics :as stat]))
 
-(def GENDERS {:m "Мужчина"
-	      :f "Женщина"})
+(def GENDERS {:m "Male"
+	      :f "Female"})
 
 (def PRONOUNS
      ["я" "ты" "он" "она" "мы" "вы" "они"
-      "меня" "тебя" "его" "ее" "нас" "вас" "их"
-      "мне" "тебе" "ему" "ей" "нам" "вам" "им"
-      "мной" "тобой" "ею" "нами" "вами" "ими"
-      "нем" "ней"
-      "себя" "сам" "себе" "собой"
-      "кто" "кого" "кому" "кем"
-      "что" "чего" "чему" "чем"
-      "такой" "такому" "такого" "таким"
-      "тот" "того" "тому" "тем" "это"
-      "этот" "этого" "этому" "этим"
-      "такой" "такого" "такому" "таким"])
+      "мен" "теб" "его" "ее" "нас" "вас" "их"
+      "мне" "ему" "ей" "нам" "вам" "им"
+      "мн" "тоб" "ею" "н" "в" "ими"
+      "нем" "ней" "себ" "сам" "соб"
+      "кто" "к" "кем" "что" "ч" "чем"
+      "так" "т" "тот" "тому" "тем" "это"
+      "этот" "эт"])
 
 (def NEGATIVES
-     ["не" "нет" "ни" "ничуть" "никак" "нельзя"])
+     ["не" "нет" "ни" "нич" "ник" "ничу" "ничт" "никак" "нельз"])
+
+(def INTRODUCTORY
+     ["разумеетс" "правд" "несомнен" "конеч" "естествен" "действител"
+      "безуслов" "бесспор" "пожалу" "видим" "очевид" "вероят" "наверн"
+      "возмож" "скаж" "например" "напрот" "наконец" "помнитс" "согласитес"
+      "пожалуйст"])
 
 (def pronounsCount (ref 0))
 (def negativesCount (ref 0))
+(def introductoryCount (ref 0))
+
+(defn formatNumber [number]
+  (format "%.2f" number))
 
 (defn printStatistics []
   "Prints statistics about pronouns"
-  (println "Местоимений :"
+  (println "Pronouns :"
 	   @pronounsCount
 	   "/"
 	   (stat/getWordsCount)
 	   " = "
-	   (/ @pronounsCount (stat/getWordsCount) 0.01) "%")
-  (println "Отрицательных слов :"
+	   (formatNumber (/ @pronounsCount (stat/getWordsCount) 0.01)) "%")
+  (println "Negative words :"
 	   @negativesCount
 	   "/"
 	   (stat/getWordsCount)
 	   " = "
-	   (/ @negativesCount (stat/getWordsCount) 0.01) "%"))
+	   (formatNumber (/ @negativesCount (stat/getWordsCount) 0.01)) "%")
+  (println "Introductory words : "
+	   @introductoryCount
+	   "/"
+	   (stat/getWordsCount)
+	   " = "
+	   (formatNumber (/ @introductoryCount (stat/getWordsCount) 0.01)) "%"))
 
 (defn updatePronounsValue [number]
   "Updates number of pronouns"
@@ -48,6 +60,10 @@
   "Updates number of negatives"
   (dosync (ref-set negativesCount number)))
 
+(defn updateIntroductoryValue [number]
+  "Updates number of introductory words"
+  (dosync (ref-set introductoryCount number)))
+
 (defn addPronouns [number]
   "Increases number of pronouns with a given number"
   (updatePronounsValue (+ number @pronounsCount)))
@@ -56,6 +72,10 @@
   "Increases number of negatives with a given number"
   (updateNegativesValue (+ number @negativesCount)))
 
+(defn addIntroductory [number]
+  "Increases number of introductory words with a given number"
+  (updateIntroductoryValue (+ number @introductoryCount)))
+
 (defn updateScore [words]
   "Updates data according to the given words input vector"
   (let [pronounsToAdd
@@ -63,24 +83,29 @@
 					 (set PRONOUNS)))
 	negativesToAdd
 	(count (clojure.set/intersection (set words)
-					 (set NEGATIVES)))]
+					 (set NEGATIVES)))
+	introductoryToAdd
+	(count (clojure.set/intersection (set words)
+					 (set INTRODUCTORY)))]
     (addPronouns pronounsToAdd)
-    (addNegatives negativesToAdd)))
+    (addNegatives negativesToAdd)
+    (addIntroductory introductoryToAdd)))
 
 (defn resetStatistics
   "Resets statistics"
   []
   (updatePronounsValue 0)
-  (updateNegativesValue 0))
+  (updateNegativesValue 0)
+  (updateIntroductoryValue 0))
 
-(def FEMALE_PRONOUN_CONSTANT 10)
+(def FEMALE_CONSTANT 10)
 
 (defn getGender
   "Returns suggested text author's gender"
   []
   (if (> (/
-	  (+ @pronounsCount @negativesCount)
+	  (+ @pronounsCount @negativesCount @introductoryCount)
 	  (stat/getWordsCount) 0.01)
-	 FEMALE_PRONOUN_CONSTANT)
+	 FEMALE_CONSTANT)
     (:f GENDERS)
     (:m GENDERS)))
